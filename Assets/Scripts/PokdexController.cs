@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -11,6 +13,8 @@ public class PokdexController : MonoBehaviour {
     /***** Private Variables *****/
     private List<Model.Cat> cats;
     private int _page = 0;
+
+    private AudioSource _audioSource;
     
     /***** Unity Methods *****/
     void Start() {
@@ -20,23 +24,43 @@ public class PokdexController : MonoBehaviour {
         UpdatePokdex();
         
         UpdateButtons();
+        
+        _audioSource = GetComponent<AudioSource>();
     }
     
     /***** Public Methods *****/
     public void HandleOnClose() {
-        SceneManager.LoadScene("Home");
+        StartCoroutine(PlayClickSoundAnd(() => SceneManager.LoadScene("Home")));
     }
 
     public void GoLeft() {
-        _page -= 1;
-        UpdatePokdex();
-        UpdateButtons();
+        StartCoroutine(PlayClickSoundAnd(
+            () => {
+                _page -= 1;
+                UpdatePokdex();
+                UpdateButtons();
+            }
+        ));
     }
     
     public void GoRight() {
-        _page += 1;
-        UpdatePokdex();
-        UpdateButtons();
+        StartCoroutine(PlayClickSoundAnd(
+            () => {
+                _page += 1;
+                UpdatePokdex();
+                UpdateButtons();
+            }
+        ));
+    }
+    
+    // Helper
+    IEnumerator PlayClickSoundAnd(Action action) {
+        // Play click sound
+        _audioSource.Play();
+        // Wait until the audio is done playing before loading the scene
+        yield return new WaitWhile(() => _audioSource.isPlaying);
+        // Run the action
+        action.Invoke();
     }
     
     /***** Private Methods *****/

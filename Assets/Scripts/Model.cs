@@ -11,7 +11,7 @@ using Random = UnityEngine.Random;
  * each scene since we are using the Unity Update methods for our point
  * increment interval.
  *
- * NOTE: This model saves to disk each second.
+ * NOTE: This model saves to disk each second on platform, not on web.
  */
 public class Model : MonoBehaviour {
   /***** Public Variables *****/
@@ -29,18 +29,25 @@ public class Model : MonoBehaviour {
   };
   // Public accessible getter and setter for the game state since other components can control this.
   public GameState gameState = GameState.Idle;
+  
+  // Public state for if the player is breating in or out
+  public bool isBreathingIn = false;
 
   /***** Private Variables *****/
   private float _secondsSincePointUpdate;
   private static GameData _gameData;
   
   /***** Unity Methods *****/
-  /** Make sure there is only one instance of this model */
+  /** Make sure there is only one instance of this model. Using a Singleton pattern */
   void Awake() {
+    // Keep this object around for the lifetime of the game.
+    DontDestroyOnLoad(gameObject);
+    
     if (Instance == null) Instance = this;
     else Destroy(gameObject);
     
     // Load the game data from disk (this is done on awake so that we can access it quickly)
+    // On platform get the date from the disk 
     _gameData = GetGameData();
   }
 
@@ -68,12 +75,26 @@ public class Model : MonoBehaviour {
       // Finally update the last login date and save the game data
       _gameData.lastLoginDate = todayDate.ToString("yyyy MMMM dd");
     }
-    
+
     // Points calculation (since last update)
     DateTime pointsUpdatedAt = _gameData.pointsUpdatedAt != "" ? DateTime.Parse(_gameData.pointsUpdatedAt) : todayDate;
-    int secondsSinceLastUpdate = (int)todayDate.Subtract(pointsUpdatedAt).TotalSeconds;
-    for (int i = 0; i < secondsSinceLastUpdate; i++) {
-      UpdateDollarsAndPoints();
+    int      secondsSinceLastUpdate = (int)todayDate.Subtract(pointsUpdatedAt).TotalSeconds;
+    
+    // LIMIT to only allow for 1h of offline point accumulation
+    secondsSinceLastUpdate = Math.Min(secondsSinceLastUpdate,  3600);
+
+    int      pointsSinceLastUpdate = secondsSinceLastUpdate * UpdatePoints();
+    _gameData.points += pointsSinceLastUpdate;
+    _gameData.pointsUpdatedAt = DateTime.Now.ToString("yyyy MMMM dd HH:mm:ss");
+    
+    int      dollarsSinceLastUpdate = secondsSinceLastUpdate * UpdateDollars();
+    _gameData.dollars += dollarsSinceLastUpdate;
+    
+    // Add a flag to show how many points and dollars the user has earned since last update
+    if(secondsSinceLastUpdate > 0) {
+      // If there was anytime away from the game since the last update
+      // store the amount of points and dollars earned since last update
+      _gameData.dollarsSinceLastUpdate = dollarsSinceLastUpdate;
     }
     
     SaveGameData(_gameData);
@@ -98,6 +119,15 @@ public class Model : MonoBehaviour {
     // Instantiate a new GameDate object
     _gameData = new GameData();
     
+    // Set last login date to today
+    _gameData.lastLoginDate = DateTime.Now.ToString("yyyy MMMM dd");
+    
+    // Set points updated at to today
+    _gameData.pointsUpdatedAt = DateTime.Now.ToString("yyyy MMMM dd HH:mm:ss");
+    
+    // Set the food percentage to 100
+    _gameData.foodBarPercentage = 1;
+
     // Make sure the user starts at level 1 
     _gameData.level = 1;
     // And the user should have one cat.
@@ -109,6 +139,7 @@ public class Model : MonoBehaviour {
     // Save the game data
     SaveGameData(_gameData);
   }
+  
   
   /** Given a cat, checks if the user can adopt a cat and adopts it. */
   public static void AdoptCat(Cat cat) {
@@ -138,6 +169,16 @@ public class Model : MonoBehaviour {
   
   /** Helper to determine if the user has enough money to adopt a cat. */
   public static bool HasEnoughMoney(Cat cat) {  return Dollars() >= cat.price; }
+  
+  public static void AddPoints(int points) {
+    _gameData.points += points;
+    SaveGameData(_gameData);
+  }
+  
+  public static void AddDollars(int dollars) {
+    _gameData.dollars += dollars;
+    SaveGameData(_gameData);
+  }
 
   /***** Getters *****/
   public static List<Cat> Cats() {  return _gameData.cats; }
@@ -166,28 +207,46 @@ public class Model : MonoBehaviour {
   }
 
   /***** Private Methods *****/
+  /** Update points. This is used at each interval (1 second). */
+  private int UpdatePoints() {
+    int points = 0;
+    
+    // For each cat
+    Cats().ForEach(cat => {
+      // Add the cat's points per second
+      points += cat.pointsPerSecond;
+    });
+
+    return points;
+  }
+  
+  /** Update dollars. This is used at each interval (1 second). */
+  private int UpdateDollars() {
+    int dollars = 0;
+    
+    // For each cat
+    Cats().ForEach(cat => {
+      // Add the cat's dollars per second
+      dollars += cat.dollarsPerSecond;
+    });
+
+    return dollars;
+  }
+  
   /** Updates the user's points and dollars */
   private void UpdateDollarsAndPoints() {
-    // Update the user's points
-    int points = 0;
-    Cats().ForEach(cat => points += cat.pointsPerSecond);
-    _gameData.points += points;
+    // Update points
+    _gameData.points += UpdatePoints();
     _gameData.pointsUpdatedAt = DateTime.Now.ToString("yyyy MMMM dd HH:mm:ss");
     
-    // Update the user's dollars
-    int dollars = 0;
-    Cats().ForEach(cat => dollars += cat.dollarsPerSecond);
-    _gameData.dollars += dollars;
+    // Update dollars
+    _gameData.dollars += UpdateDollars();
 
     // Save the game data
     SaveGameData(_gameData);
   }
   
-  /**
-   * Increase the food bar when the player is not breathing
-   *
-   * TODO: Need to add logic to feed all cats when breathing for 10 minutes.
-   */
+  /** Increase the food bar when the player is not breathing */
   private void UpdateFood() {
     // When the game is in a idle state
     if (gameState == GameState.Idle) {
@@ -214,8 +273,8 @@ public class Model : MonoBehaviour {
       }
       // If the food bar is not empty
       else {
-        // Decrease the food bar at a speed which will take 10 minutes to empty
-        _gameData.foodBarPercentage -= 1f / (60f * 10f);
+        // Decrease the food bar at a speed which will take 5 minutes to empty
+        _gameData.foodBarPercentage -= 1f / (60f * 5f);
         
         // Fill the food dish
         UpdateFoodDish(true);
@@ -275,13 +334,35 @@ public class Model : MonoBehaviour {
   }
   
   private static GameData GetGameData() {
-    string serializedData = File.ReadAllText(Application.streamingAssetsPath + "/gameData.json");
-    return JsonUtility.FromJson<GameData>(serializedData);
+    #if UNITY_STANDALONE
+      // Get the game date from dist when on a platform (not web)
+      string serializedData = File.ReadAllText(Application.streamingAssetsPath + "/gameData.json");
+      return JsonUtility.FromJson<GameData>(serializedData);
+    #else
+      // On web, get the game date from IndexDB
+      string serializedData = PlayerPrefs.GetString("gameData");
+      
+      // Handle the case where the game data is not yet initialized
+      if(serializedData == "") {
+        // Reset the game date
+        ResetGameData();
+        // Return this new date data
+        return _gameData;
+      }
+      return JsonUtility.FromJson<GameData>(serializedData);
+#endif
   }
 
-  static void SaveGameData(GameData gameData) {
-    string serializedData = JsonUtility.ToJson(gameData, true);
-    File.WriteAllText(Application.streamingAssetsPath + "/gameData.json", serializedData);
+  public static void SaveGameData(GameData gameData) {
+    #if UNITY_STANDALONE
+      // Only save to disk when on a platform and not the web
+      string serializedData = JsonUtility.ToJson(gameData, true);
+      File.WriteAllText(Application.streamingAssetsPath + "/gameData.json", serializedData);
+    #else 
+      // Save to IndexDB when on the web
+      string serializedData = JsonUtility.ToJson(gameData, true);
+      PlayerPrefs.SetString("gameData", serializedData);
+    #endif
   }
 
   /***** Private Classes *****/
@@ -383,5 +464,8 @@ public class Model : MonoBehaviour {
     public int dayStreak; // Streak for the amount of days the player has opened the game.
     public int deepBreathingSession; // Number of deep breathing session today. Will reset when last login date is changed
     public int pacedBreathingSession; // Number of paced breathing session today. Will reset when last login date is changed
+    
+    // Offline Data
+    public int dollarsSinceLastUpdate; // The amount of dollars since the last update.
   }
 }

@@ -6,12 +6,18 @@ public class FoodButtonController : MonoBehaviour {
   public GameObject circle;
   public GameObject lung;
   public GameObject button;
+  public GameObject breathInText;
+  public GameObject breathOutText;
   
   /***** Unity Methods *****/
   void Start() {
     // Scale down the LungCircle component and hide it
     circle.SetActive(false);
     circle.transform.localScale = Vector3.zero;
+    
+    // Hide the text
+    breathInText.SetActive(false);
+    breathOutText.SetActive(false);
   }
 
   void Update() {
@@ -46,7 +52,7 @@ public class FoodButtonController : MonoBehaviour {
 
       // Stop the lung from growing
       lung.GetComponent<LungController>().IsBreathing(false);
-      
+
       // If the circle is still showing
       if(circle.transform.localScale.x > 0) {
         // Scale down the circle
@@ -58,6 +64,26 @@ public class FoodButtonController : MonoBehaviour {
         // show the circle.
         circle.transform.localScale = Vector3.zero;
       }
+    }
+    
+    // Show the breath in text when the lung are breathing and the direction is 1
+    // Only show text when breathing
+    if (lung.GetComponent<LungController>().GetBreathing()) {
+      // Show breath in text when the direction is 1
+      if (lung.GetComponent<LungController>().GetDirection() == 1) {
+        breathInText.SetActive(true);
+        breathOutText.SetActive(false);
+      }
+      // Otherwise show breath out text
+      else {
+        breathInText.SetActive(false);
+        breathOutText.SetActive(true);
+      }
+    }
+    else {
+      // Hide the text
+      breathInText.SetActive(false);
+      breathOutText.SetActive(false);
     }
   }
 }

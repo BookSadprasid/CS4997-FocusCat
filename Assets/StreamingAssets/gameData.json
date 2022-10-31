@@ -1,8 +1,8 @@
 {
     "level": 11,
-    "points": 69878,
-    "pointsUpdatedAt": "2022 June 27 13:29:59",
-    "dollars": 716630,
+    "points": 12332307,
+    "pointsUpdatedAt": "2022 July 17 16:31:00",
+    "dollars": 309416970,
     "cats": [
         {
             "specie": "Felis Alfredo",
@@ -14,37 +14,20 @@
             "dollarsPerSecond": 10
         },
         {
-            "specie": "Felis Rigatoni",
-            "rarity": 3,
-            "variant": 1,
-            "adoptedOn": "2022 June 27",
-            "price": 5000,
-            "pointsPerSecond": 3,
-            "dollarsPerSecond": 50
-        },
-        {
-            "specie": "Felis Fetuccine",
-            "rarity": 5,
+            "specie": "Felis Bucatini",
+            "rarity": 2,
             "variant": 0,
             "adoptedOn": "2022 June 27",
-            "price": 12000,
-            "pointsPerSecond": 5,
-            "dollarsPerSecond": 120
-        },
-        {
-            "specie": "Felis Cannelloni",
-            "rarity": 6,
-            "variant": 2,
-            "adoptedOn": "2022 June 27",
-            "price": 17000,
-            "pointsPerSecond": 6,
-            "dollarsPerSecond": 170
+            "price": 2500,
+            "pointsPerSecond": 2,
+            "dollarsPerSecond": 25
         }
     ],
-    "foodBarPercentage": 0.12055492401123047,
-    "foodDishPercentage": 0.04305557534098625,
+    "foodBarPercentage": 0.11611203849315644,
+    "foodDishPercentage": 0.11111097782850266,
     "lastLoginDate": "",
     "dayStreak": 0,
     "deepBreathingSession": 0,
-    "pacedBreathingSession": 0
+    "pacedBreathingSession": 0,
+    "dollarsSinceLastUpdate": 0
 }
