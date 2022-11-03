@@ -1,8 +1,8 @@
 {
     "level": 11,
-    "points": 12332307,
-    "pointsUpdatedAt": "2022 July 17 16:31:00",
-    "dollars": 309416970,
+    "points": 12386307,
+    "pointsUpdatedAt": "2022 November 02 20:46:50",
+    "dollars": 310047550,
     "cats": [
         {
             "specie": "Felis Alfredo",
@@ -23,11 +23,10 @@
             "dollarsPerSecond": 25
         }
     ],
-    "foodBarPercentage": 0.11611203849315644,
-    "foodDishPercentage": 0.11111097782850266,
+    "foodBarPercentage": 0.8222230672836304,
+    "foodDishPercentage": 0.2536117732524872,
     "lastLoginDate": "",
+    "lastDeepBreathingAt": "2022 November 02 20:46:48",
     "dayStreak": 0,
-    "deepBreathingSession": 0,
-    "pacedBreathingSession": 0,
     "dollarsSinceLastUpdate": 0
 }

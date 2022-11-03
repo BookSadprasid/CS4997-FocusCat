@@ -29,8 +29,19 @@ public class Model : MonoBehaviour {
   };
   // Public accessible getter and setter for the game state since other components can control this.
   public GameState gameState = GameState.Idle;
-  
-  // Public state for if the player is breating in or out
+
+  public void SetGameState(GameState state) {
+    // If the gameState is being changes to breathing, then update the last deep
+    // breathing time and save that data.
+    if (state == GameState.Breathing) {
+      _gameData.lastDeepBreathingAt = DateTime.Now.ToString("yyyy MMMM dd HH:mm:ss");
+      SaveGameData(_gameData);
+    }
+
+    gameState = state;
+  }
+
+  // Public state for if the player is breathing in or out
   public bool isBreathingIn = false;
 
   /***** Private Variables *****/
@@ -57,10 +68,6 @@ public class Model : MonoBehaviour {
     // Streak calculation
     DateTime lastLoginDate = _gameData.lastLoginDate != "" ? DateTime.Parse(_gameData.lastLoginDate) : todayDate;
     if (!todayDate.Equals(lastLoginDate)) {
-      // Then reset the session data
-      _gameData.deepBreathingSession = 0;
-      _gameData.pacedBreathingSession = 0;
-      
       // And if it has been one day since the last login
       if (todayDate.Subtract(lastLoginDate).Days == 1) {
         // Increase the streak
@@ -114,7 +121,10 @@ public class Model : MonoBehaviour {
   }
   
   /***** Public Methods *****/
-  /** Resets the game date for a new user */
+  /**
+   * Resets the game date for a new user.
+   * Use this also as a new factory
+   */
   public static void ResetGameData() {
     // Instantiate a new GameDate object
     _gameData = new GameData();
@@ -122,8 +132,11 @@ public class Model : MonoBehaviour {
     // Set last login date to today
     _gameData.lastLoginDate = DateTime.Now.ToString("yyyy MMMM dd");
     
-    // Set points updated at to today
+    // Set the points updated at to now
     _gameData.pointsUpdatedAt = DateTime.Now.ToString("yyyy MMMM dd HH:mm:ss");
+    
+    // Set the last deep breathing date to now
+    _gameData.lastDeepBreathingAt = DateTime.Now.ToString("yyyy MMMM dd HH:mm:ss");
     
     // Set the food percentage to 100
     _gameData.foodBarPercentage = 1;
@@ -175,6 +188,7 @@ public class Model : MonoBehaviour {
     SaveGameData(_gameData);
   }
   
+  /** Adds dollars to the game data and also saves the game data to disk. */
   public static void AddDollars(int dollars) {
     _gameData.dollars += dollars;
     SaveGameData(_gameData);
@@ -461,10 +475,9 @@ public class Model : MonoBehaviour {
 
     // Analytics
     public string lastLoginDate; // Used to increment or break the streak
+    public string lastDeepBreathingAt; // The datetime when the last deep breathing was performed.
     public int dayStreak; // Streak for the amount of days the player has opened the game.
-    public int deepBreathingSession; // Number of deep breathing session today. Will reset when last login date is changed
-    public int pacedBreathingSession; // Number of paced breathing session today. Will reset when last login date is changed
-    
+
     // Offline Data
     public int dollarsSinceLastUpdate; // The amount of dollars since the last update.
   }

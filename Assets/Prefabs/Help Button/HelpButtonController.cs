@@ -6,23 +6,31 @@ public class HelpButtonController : MonoBehaviour {
   [Header("Sprites")]
   public Sprite clickedSprite;
   public Sprite unclickedSprite;
-  
+
   /********** Private Variables **********/
   private bool selected;
   private Image image;
   private TooltipController[] tooltips;
   
+  private AudioSource audioSource;
+  
   /********** Unity Methods **********/
   void Start() {
     // Find all the tooltip in the current scene
-    tooltips = FindObjectsOfType<TooltipController>();
-    
+    tooltips = Resources.FindObjectsOfTypeAll<TooltipController>();
+
     // Get the image component
     image = GetComponent<Image>();
+    
+    // Get the audio source
+    audioSource = GetComponent<AudioSource>();
   }
   
   /********** Public Methods **********/
   public void OnClick() {
+    // Play a click sound
+    audioSource.Play();
+
     // Toggle the selected state
     selected = !selected;
     

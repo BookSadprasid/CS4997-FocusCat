@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class LevelProgressDisplayController : MonoBehaviour {
   /********** Public Variables **********/
@@ -12,11 +13,18 @@ public class LevelProgressDisplayController : MonoBehaviour {
   /***** Private Variables *****/
   // The width of the container to fill.
   private float _containerWidth;
+  
+  private Image _fillImage;
+  private Color _activeColor = new Color(140 / 255f, 199 / 255f, 191 / 255f);
+  private Color _inactiveColor = new Color(193 / 255f, 67/255f, 46/255f);
 
   /***** Unity Methods *****/
   void Start() {
     // Get the width of the container minus the right border width;
     _containerWidth = container.rect.width - 5;
+    
+    // Get the fill image.
+    _fillImage = fill.GetComponent<Image>();
 
     // Move both the know and fill
     MoveKnob();
@@ -27,6 +35,20 @@ public class LevelProgressDisplayController : MonoBehaviour {
     // Move both the know and fill
     MoveKnob();
     MoveFill();
+    
+    // Check if it has been over 60m since the last deep breathing session.
+    DateTime todayDate                            = DateTime.Now;
+    DateTime lastDeepBreathingDate                = !String.IsNullOrEmpty(Model.Instance.gameData.lastDeepBreathingAt) ? DateTime.Parse(Model.Instance.gameData.lastDeepBreathingAt) : todayDate;
+    int      secondsSinceLastDeepBreathingSession = (int)todayDate.Subtract(lastDeepBreathingDate).TotalSeconds;
+    
+    // If it has been more than 1h since the last deep breathing session,
+    // change the color of the fill to red.
+    if (secondsSinceLastDeepBreathingSession > 60 * 60) {
+      _fillImage.color = _inactiveColor;
+    }
+    else {
+      _fillImage.color = _activeColor;
+    }
   }
   
   /***** Private Methods *****/

@@ -1375,6 +1375,7 @@ MonoBehaviour:
   modal: {fileID: 524424734}
   clickSound: {fileID: 8300000, guid: 91fb938513db8494c887ded0fd2f1aff, type: 3}
   adoptSound: {fileID: 8300000, guid: 09a7cf23e8189444682369f741f8bb77, type: 3}
+  beepSound: {fileID: 8300000, guid: 53824a7d459b940cc8f22281032d98cc, type: 3}
 --- !u!82 &1636219830
 AudioSource:
   m_ObjectHideFlags: 0

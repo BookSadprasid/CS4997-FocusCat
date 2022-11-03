@@ -8,6 +8,9 @@ public class FoodButtonController : MonoBehaviour {
   public GameObject button;
   public GameObject breathInText;
   public GameObject breathOutText;
+
+  /***** Private Variables *****/
+  private AudioSource audioSource;
   
   /***** Unity Methods *****/
   void Start() {
@@ -18,34 +21,43 @@ public class FoodButtonController : MonoBehaviour {
     // Hide the text
     breathInText.SetActive(false);
     breathOutText.SetActive(false);
+    
+    // Get the AudioSource component
+    audioSource = GetComponent<AudioSource>();
   }
 
   void Update() {
     // While the Button is pressed
     if (button.GetComponent<ButtonController>().IsPressed()) {
+      // When the Button is pressed, play the sound
+      if (!audioSource.isPlaying) {  audioSource.Play(); }
+
       // Tell the Model that we are in a breathing state (this will deplete the food bar)
-      Model.Instance.gameState = Model.GameState.Breathing;
+      Model.Instance.SetGameState(Model.GameState.Breathing);
       
       // And show the LungCircle component
       circle.SetActive(true);
 
       // If the circle is not fully scaled
-      if(circle.transform.localScale.x < 1){
+      if (circle.transform.localScale.x < 1) {
         // Scale the circle up
-        circle.transform.localScale += Vector3.one * Time.deltaTime;  
+        circle.transform.localScale += Vector3.one * Time.deltaTime;
       } 
       // If the circle is fully scaled
       else if (circle.transform.localScale.x >= 1) {
         // Set the circle scale to 1 to handle over-scaling due to timing.
         circle.transform.localScale = Vector3.one;
-        // And trigger the lung to grow
+        // And trigger the lung to grow (the LungController is controlling the growth, this is independent from the circle animation)
         lung.GetComponent<LungController>().IsBreathing(true);
       }
     }
     // While the button is not pressed
     else {
+      // Stop the sound
+      audioSource.Stop();
+      
       // Tell the Model that we are in a idle state (this will increase the food bar)
-      Model.Instance.gameState = Model.GameState.Idle;
+      Model.Instance.SetGameState(Model.GameState.Idle);
       
       // And hide the LungCircle component
       circle.SetActive(false);

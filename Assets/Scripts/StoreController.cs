@@ -13,6 +13,7 @@ public class StoreController : MonoBehaviour {
     [Header("Audio Clips")]
     public AudioClip clickSound;
     public AudioClip adoptSound;
+    public AudioClip beepSound; // Sound when you cannot adopt a pet
 
     /***** Private Variables *****/
     private IncubaborController[] incubaborControllers;
@@ -69,23 +70,30 @@ public class StoreController : MonoBehaviour {
     /***** Private Methods *****/
     /** Handler when clicking on the "Adopt" button **/
     private void AdoptCat(Model.Cat cat, IncubaborController incubaborController) {
-        // Update the click sound
-        _audioSource.clip = adoptSound;
-        // Play the click sound
-        _audioSource.Play();
+        // Load the sound for when you cannot adopt a cat
+        _audioSource.clip = beepSound;
         
         // Given a cat
         // If the user has enough capacity
         if (!Model.HasEnoughSpace()) {
             ShowModal("Sorry! You don't have enough space to adopt a cat.");
+            // Play the sound
+            _audioSource.Play();
             return;
         }
 
         // And if thee user has enough money
         if (!Model.HasEnoughMoney(cat)) {
             ShowModal("Sorry! You don't have enough money to adopt a cat.");
+            // Play the sound
+            _audioSource.Play();
             return;
         }
+        
+        // Update the sound when you can adopt a cat
+        _audioSource.clip = adoptSound;
+        // Play the click sound
+        _audioSource.Play();
 
         // Now that the user has enough money and space, we can adopt the cat
         ShowModal("Congratulations! You have adopt a cat.");
